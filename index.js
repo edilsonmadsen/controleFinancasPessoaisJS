@@ -1,3 +1,5 @@
+let transactions = [];
+
 function createTransactionContainer(id) {
   const container = document.createElement("div");
   container.classList.add("transaction");
@@ -40,3 +42,32 @@ function renderTransaction(transaction) {
   container.append(title, amount);
   document.querySelector("#transactions").append(container);
 }
+
+async function fetchTransactions() {
+  return await fetch("http://localhost:3000/transactions").then((res) =>
+    res.json()
+  );
+}
+
+function updateBalance() {
+  const balanceSpan = document.querySelector("#balance");
+  const balance = transactions.reduce(
+    (sum, transaction) => sum + transaction.amount,
+    0
+  );
+  const formater = Intl.NumberFormat("pt-BR", {
+    compactDisplay: "long",
+    currency: "BRL",
+    style: "currency",
+  });
+  balanceSpan.textContent = formater.format(balance);
+}
+
+async function setup() {
+  const results = await fetchTransactions();
+  transactions.push(...results);
+  transactions.forEach(renderTransaction);
+  updateBalance();
+}
+
+document.addEventListener("DOMContentLoaded", setup);
