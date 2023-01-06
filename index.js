@@ -43,6 +43,28 @@ function renderTransaction(transaction) {
   document.querySelector("#transactions").append(container);
 }
 
+async function saveTransaction(ev) {
+  ev.preventDefault();
+
+  const name = document.querySelector("#name").value;
+  const amount = document.querySelector("#amount").value;
+
+  const response = await fetch("http://localhost:3000/transactions", {
+    method: "POST",
+    body: JSON.stringify({ name, amount }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  const transaction = await response.json();
+  transactions.push(transaction);
+  renderTransaction(transaction);
+
+  ev.target.reset();
+  updateBalance();
+}
+
 async function fetchTransactions() {
   return await fetch("http://localhost:3000/transactions").then((res) =>
     res.json()
@@ -71,3 +93,4 @@ async function setup() {
 }
 
 document.addEventListener("DOMContentLoaded", setup);
+document.querySelector("form").addEventListener("submit", saveTransaction);
