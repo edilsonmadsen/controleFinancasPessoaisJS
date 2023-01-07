@@ -47,7 +47,7 @@ async function saveTransaction(ev) {
   ev.preventDefault();
 
   const name = document.querySelector("#name").value;
-  const amount = document.querySelector("#amount").value;
+  const amount = parseFloat(document.querySelector("#amount").value);
 
   const response = await fetch("http://localhost:3000/transactions", {
     method: "POST",
@@ -60,7 +60,7 @@ async function saveTransaction(ev) {
   const transaction = await response.json();
   transactions.push(transaction);
   renderTransaction(transaction);
-
+  console.log(transactions);
   ev.target.reset();
   updateBalance();
 }
