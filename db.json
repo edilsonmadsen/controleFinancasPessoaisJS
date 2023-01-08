@@ -2,12 +2,12 @@
   "transactions": [
     {
       "name": "Freela",
-      "amount": 300,
+      "amount": 400,
       "id": 1
     },
     {
       "name": "Salário",
-      "amount": 3200,
+      "amount": 3000,
       "id": 2
     },
     {

@@ -26,41 +26,88 @@ function createTransactionAmount(amount) {
 
   if (amount > 0) {
     span.textContent = `${formatedAmount} C`;
-    span.classList.add("credit");
+    span.classList.add("transaction-amount", "credit");
   } else {
     span.textContent = `${formatedAmount} D`;
-    span.classList.add("debit");
+    span.classList.add("transaction-amount", "debit");
   }
   return span;
+}
+
+function createEditTransactionBtn(transaction) {
+  const editBtn = document.createElement("button");
+  editBtn.classList.add("edit-btn");
+  editBtn.textContent = "Editar";
+  editBtn.addEventListener("click", () => {
+    document.querySelector("#id").value = transaction.id;
+    document.querySelector("#name").value = transaction.name;
+    document.querySelector("#amount").value = transaction.amount;
+  });
+  return editBtn;
+}
+
+function createDeleteTransaction(id) {
+  const deleteBtn = document.createElement("button");
+  deleteBtn.classList.add("delete-btn");
+  deleteBtn.textContent = "Excluir";
+  deleteBtn.addEventListener("click", async () => {
+    await fetch(`http://localhost:3000/transactions/${id}`, {
+      method: "DELETE",
+    });
+    const indexToRemove = transactions.findIndex((t) => t.id === id);
+    transactions.splice(indexToRemove, 1);
+    updateBalance();
+  });
+  return deleteBtn;
 }
 
 function renderTransaction(transaction) {
   const container = createTransactionContainer(transaction.id);
   const title = createTransactionTitle(transaction.name);
   const amount = createTransactionAmount(transaction.amount);
+  const editBtn = createEditTransactionBtn(transaction);
+  const deleteBtn = createDeleteTransaction(transaction.id);
 
-  container.append(title, amount);
+  container.append(title, amount, editBtn, deleteBtn);
   document.querySelector("#transactions").append(container);
 }
 
 async function saveTransaction(ev) {
   ev.preventDefault();
 
+  const id = document.querySelector("#id").value;
   const name = document.querySelector("#name").value;
   const amount = parseFloat(document.querySelector("#amount").value);
 
-  const response = await fetch("http://localhost:3000/transactions", {
-    method: "POST",
-    body: JSON.stringify({ name, amount }),
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+  if (id) {
+    // edita a transação com esse id
+    const response = await fetch(`http://localhost:3000/transactions/${id}`, {
+      method: "PUT",
+      body: JSON.stringify({ name, amount }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    const transaction = await response.json();
+    const indexToRemove = transactions.findIndex((t) => t.id === id);
+    transaction.splice(indexToRemove, 1, transaction);
+    document.querySelector(`#transaction-${id}`).remove();
+    renderTransaction(transaction);
+  } else {
+    //cria a nova transação
+    const response = await fetch("http://localhost:3000/transactions", {
+      method: "POST",
+      body: JSON.stringify({ name, amount }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
-  const transaction = await response.json();
-  transactions.push(transaction);
-  renderTransaction(transaction);
-  console.log(transactions);
+    const transaction = await response.json();
+    transactions.push(transaction);
+    renderTransaction(transaction);
+  }
+
   ev.target.reset();
   updateBalance();
 }
